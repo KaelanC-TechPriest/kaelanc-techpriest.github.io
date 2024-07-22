@@ -1,11 +1,11 @@
 let donationsDisplay = document.getElementById("counter");
 let thanks = document.getElementById("thanks");
-let donateButton = document.getElementById("donate");
+// let donateButton = document.getElementById("donate").onclick = function() {donate_money()};
 let donations = 9995;
 
 donationsDisplay.innerHTML = donations;
 
-donateButton.addEventListener("click", () => {
+function donate_money() {
     donations += 1;
     if (donations > 30000) {
         donations = 0;
@@ -17,4 +17,4 @@ donateButton.addEventListener("click", () => {
         thanks.innerHTML = "Thank you for your donation! <br>We will use it to fund the wars!";
     }
     donationsDisplay.innerHTML = donations;
-});
+};
