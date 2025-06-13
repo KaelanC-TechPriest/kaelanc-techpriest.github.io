@@ -13,7 +13,12 @@
             }
 
             body {
+                align-items: center;
                 background-color: #57585a;
+            }
+
+            header {
+                text-align: center;
             }
 
             button {
@@ -36,10 +41,10 @@
 <body>
     <div class="content">
 
-        <center>
-        <h1>Welcome to the Church of Adeptus Mechanicus</h1>
-        <h2>Please consider making a donation</h2>
-        </center>
+        <header>
+                <h1>Welcome to the Church of Adeptus Mechanicus</h1>
+                <h2>Please consider making a donation</h2>
+        </header>
 
         <p>Total Donated Currency: $<span id="counter"></span></p>
         <button onclick="donate_money()">Donate</button>
