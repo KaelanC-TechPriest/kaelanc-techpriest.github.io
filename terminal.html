@@ -1,0 +1,93 @@
+<!--    Made by Kaelan Carney                                            -->
+<!--    This is a template for any web-based terminal-like program.      -->
+<!--    I made this so I could use it for any future projects that have  -->
+<!--    this style.                                                      -->
+<!--    Heavily referensed https://kimlimjustin.github.io/old/ for this  -->
+<!--                                                                     -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <style>
+        body {
+            background-color: #000000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            overflow: hidden;
+        }
+        .prompt {
+            display: inline-block;
+            white-space: pre-wrap;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+        input {
+            background: none;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            outline: none;
+            padding: 0;
+            margin: 0;
+            caret-color: #00ff00;
+            vertical-align: bottom;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+    </style>
+    <body>
+        <!-- <button type="" onclick="swit()">Switch</button> -->
+        <!-- <iframe id="iframe" src="https://youtube.com/embed/witZkiEe-c4?si=3N4NITc64e1gFzv0"></iframe> -->
+        <div class="terminal">
+            <div class="terminal-row">
+                <span class="terminal-user">> </span>
+                <input type="text" class="terminal-input-command" autocomplete="off" spellcheck="false" autocorrect="off" />
+            </div>
+        </div>
+    </body>
+    <script>
+        const terminalElement = document.querySelector('.terminal');
+        const inputTerminal = document.querySelector('.terminal-input-command');
+
+        const RETURN_VALUE = (inputValue, outputValue) => {
+            let outputElement = document.createElement('p');
+            outputElement.classList.add('terminal-row');
+            outputElement.classList.add('terminal-log');
+            outputElement.innerHTML = outputValue;
+            let lastInputElement = document.createElement('p');
+            lastInputElement.classList.add('terminal-row');
+            lastInputElement.innerHTML = `<span class="terminal-user">> </span><span class="terminal-log">${inputValue}</span>`;
+            terminalElement.insertBefore(outputElement, inputTerminal.parentNode);
+            terminalElement.insertBefore(lastInputElement, outputElement);
+        };
+
+        const PREVIOUS_COMMANDS = [];
+
+        const inputTerminalHandler = (e) => {
+            if (e.key === 'Enter' && e.target.value) {
+                let input = e.target.value,
+                    output = `'${input}' is not recognized as a command.`;
+                RETURN_VALUE(input, output);
+                inputTerminal.value = '';
+            }
+        };
+        inputTerminal.addEventListener('keypress', inputTerminalHandler);
+
+    </script>
+</html>
