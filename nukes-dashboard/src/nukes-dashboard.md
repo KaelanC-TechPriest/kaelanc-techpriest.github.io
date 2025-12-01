@@ -281,7 +281,7 @@ viewAllTime.addEventListener('change', function() {
 // {{{1 INFO: 6. HOVER TOOLTIP CONTROL
 
 // Create the hover information box (tooltip)
-const info = L.domUtil.create('div', 'custom-tooltip'); // Default position is 'topleft'
+const info = L.control(); // Default position is 'topleft'
 
 // 'onAdd' creates the control's HTML element.
 info.onAdd = function (map) {
