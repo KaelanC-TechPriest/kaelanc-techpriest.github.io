@@ -11,8 +11,6 @@ import * as L from "npm:leaflet";
 
 # Nuclear Detonations
 
-<!-- Load and transform the data -->
-
 ```js
 const bombs = FileAttachment("data/nukes.csv").csv({typed: true});
 const views = {
@@ -22,14 +20,11 @@ const views = {
 }
 ```
 
-<!-- A shared color scale for consistency, sorted by the number of nukes -->
-
 ```js
 const color = Plot.scale({
     color: {
         type: "categorical",
         domain: d3.groupSort(bombs, (D) => -D.length, (d) => d["origin country"]),
-        unknown: "var(--theme-foreground-muted)"
     }
 });
 ```
@@ -108,6 +103,7 @@ function bombsTimeline(country, {width} = {}) { // {{{1
     });
 }
 bombsTimeline(views.country);
+
 let barYear;
 const clicked = (event) => {
     if (event) {
@@ -118,7 +114,6 @@ const clicked = (event) => {
     }
 };
 clicked(undefined);
-let thingy;
 // }}}
 ```
 
@@ -131,7 +126,6 @@ let thingy;
 ```js
 // {{{1 LEAFLET MAP
 // 1. MAP INITIALIZATION {{{2
-// console.log(barYear);
 const container = display(document.createElement("div"));
 container.style = "height: 600px;";
 const map = L.map(container).setView([20, 20], 1.7);
@@ -154,41 +148,34 @@ colorScale.domain(bombOriginCategories)
 
 // 3. MAP STYLING AND LAYERS {{{2
 
-/**
-   * Defines the visual style for our data points (circle markers).
-   * This function is called for every single point.
-   * @param {object} feature - The GeoJSON feature (our call data).
-   * @returns {object} A Leaflet Path options object.
-   */
 function style(feature) {
     return {
-        radius: 6, // Size of the circle
-        // Get the color for this feature's call type from our D3 scale
+        radius: 6,
         fillColor: color.apply(feature.properties['origin country']),
-        color: "#000", // Border color
-        weight: 1, // Border width
-        opacity: 1, // Border opacity
-        fillOpacity: 0.75 // Fill opacity
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.75
     };
 }
 
-// Create a Leaflet Layer Group. This acts as a container for all our
-// call data points. This is crucial because it allows us to
-// clear all points at once (callsLayer.clearLayers()) instead of
-// removing them one by one, which is much faster.
+// This it allows us to clear all points at once (callsLayer.clearLayers())
+// instead of removing them one by one, which is much faster.
 let bombsLayer = L.layerGroup().addTo(map);
 
 /**
    * Main function to filter data and update the map.
-   * This is called whenever a filter (dropdown, slider, checkbox) changes.
+   * This is called whenever a filter changes.
    * @param {string} selectedType - The call type from the dropdown.
-   * @param {number} selectedMonth - The month from the slider.
-   * @param {boolean} viewAll - The state of the 'View All' checkbox.
+   * @param {number} selectedYear - The year clicked in the bar chart.
    */
 function updateMap(selectedType = 'All', selectedYear) {
     console.log("Update map with: " + selectedType + " " + selectedYear);
 
     const filteredCalls = bombs.filter(bomb => {
+        // some of the russian bombs have no lat/lon and default to 0/0
+        if (parseFloat(bomb['latitude']) === 0 &&
+            parseFloat(bomb['longitude']) === 0) return false;
 
         if (selectedYear) {
             return (selectedType === 'All' || bomb['purpose'] === selectedType) && (parseInt(bomb['date']) === parseInt(selectedYear));
@@ -197,14 +184,13 @@ function updateMap(selectedType = 'All', selectedYear) {
         }
     });
 
-    // Convert our flat array of 'filteredCalls' into a GeoJSON FeatureCollection.
     // Leaflet's L.geoJSON layer understands this format.
     const geoJsonLike = {
         type: "FeatureCollection",
-        features: filteredCalls.map(bomb => ({ // Create one "Feature" for each call
+        features: filteredCalls.map(bomb => ({
             type: "Feature",
-            properties: bomb, // All CSV data goes here
-            geometry: { // The geographic part
+            properties: bomb,
+            geometry: {
                 type: "Point",
                 // Coordinates must be [longitude, latitude] for GeoJSON
                 coordinates: [parseFloat(bomb.longitude), parseFloat(bomb.latitude)]
@@ -222,19 +208,12 @@ function updateMap(selectedType = 'All', selectedYear) {
        * Instead of default markers, we use L.circleMarker.
        */
         pointToLayer: function (feature, latlng) {
-            // 'latlng' is the Leaflet-formatted coordinate.
-            // We style the circle marker using our 'style' function.
             return L.circleMarker(latlng, style(feature));
         },
-        /**
-       * This function is called for each feature created.
-       * It's where we attach our event listeners (hover, click).
-       */
         onEachFeature: onEachFeature
-    }).addTo(bombsLayer); // Add the new GeoJSON layer to our 'callsLayer' group.
+    }).addTo(bombsLayer);
 }
 
-// Add legend to map
 const legend = L.control({ position: 'bottomright' });
 
 legend.onAdd = function (map) {
@@ -277,7 +256,7 @@ filterControl.onAdd = function (map) {
 filterControl.addTo(map);
 // }}}
 
-// {{{2 5. EVENT LISTENERS
+// {{{2 5. EVENT LISTENERS & TOOLTIP
 
 d3.select("#bomb-purpose-select").on("change", function() {
     const selectedType = this.value;
@@ -286,9 +265,7 @@ d3.select("#bomb-purpose-select").on("change", function() {
     views.purpose = selectedType;
     updateMap(views.purpose, views.year);
 });
-// }}}
 
-// {{{2 6. HOVER TOOLTIP CONTROL
 function onEachFeature(feature, layer) {
     if (feature.properties) {
         layer.bindTooltip(
@@ -329,21 +306,20 @@ function onEachFeature(feature, layer) {
 
 // }}}
 
-// {{{2 7. INTERACTIVITY FUNCTIONS (HOVER/CLICK)
+// {{{2 6. INTERACTIVITY FUNCTIONS (HOVER/CLICK)
 
 /**
-   * Called on 'mouseover': highlights the point.
-   * @param {Event} e - The Leaflet mouse event.
-   */
+    * Controls the highlighting on mouseover.
+    * @param {Event} e - The Leaflet mouse event.
+*/
 function highlightFeature(e) {
-    const layer = e.target; // 'e.target' is the layer (circle marker) hovered over.
+    const layer = e.target;
 
-    // Set a new, "highlighted" style for the layer.
     layer.setStyle({
-        weight: 5, // Thicker border
-        color: '#666', // Darker border color
-        dashArray: '', // Solid border (if it was dashed)
-        fillOpacity: 0.7 // Slightly more transparent
+        weight: 5,
+        color: '#666',
+        dashArray: '',
+        fillOpacity: 0.7
     });
 }
 
@@ -352,30 +328,15 @@ function highlightFeature(e) {
    * @param {Event} e - The Leaflet mouse event.
    */
 function resetHighlight(e) {
-    const layer = e.target; // The layer being left.
-
-    // Reset the layer's style back to its original state.
-    // We call our 'style' function again to get the correct default style
-    // based on its feature properties (e.g., to get the right color).
+    const layer = e.target;
     layer.setStyle(style(layer.feature));
 }
+// }}}
 
-/**
-   * Called on 'click': zooms the map to the point.
-   * @param {Event} e - The Leaflet mouse event.
-   */
-function zoomToFeature(e) {
-    // Note: circleMarker doesn't have 'getBounds()'. For a single point,
-    // you might prefer map.setView(e.latlng, zoomLevel)
-    // However, if it were a polygon, getBounds() would be correct.
-    // For a circle, e.target.getBounds() *does* work, surprisingly.
-    map.fitBounds(e.target.getBounds());
-}
-
-// {{{2 8. INITIAL MAP LOAD
+// {{{2 7. INITIAL MAP LOAD
 updateMap('All', null);
 // }}}
-// }}}
+//}}}
 ```
 
 <div class="grid grid-cols-1">
