@@ -115,13 +115,40 @@ const clicked = (event) => {
 };
 clicked(undefined);
 // }}}
-```
 
+function resetBarChart() {
+    views.country = null;
+    window.dispatchEvent(new CustomEvent('update-chart'));
+};
+```
+<!-- {{{1 BAR CHART HTML -->
 <div class="grid grid-cols-1">
     <div class="card">
-        ${resize((width) => { const createChart = () => { const c = bombsTimeline(views.country, {width}); c.addEventListener("click", clicked); return c; }; let currentChart = createChart(); const reload = () => { const newChart = createChart(); currentChart.replaceWith(newChart); currentChart = newChart; }; window.addEventListener("update-chart", reload); return currentChart; })}
+        ${resize((width) => { 
+            const createChart = () => { 
+                const c = bombsTimeline(views.country, {width}); 
+                c.addEventListener("click", clicked); return c; 
+            };
+            let currentChart = createChart(); 
+            const reload = () => {
+                const newChart = createChart();
+                currentChart.replaceWith(newChart); 
+                currentChart = newChart;
+            }; 
+            window.addEventListener("update-chart", reload); 
+            return currentChart; 
+        })}
+        ${(() => {
+            const resetButton = html`<button>View All Countries</button>`;
+            resetButton.onclick = () => {
+                views.country = null;
+                window.dispatchEvent(new CustomEvent('update-chart'));
+            };
+            return resetButton;
+        })()}
     </div>
 </div>
+<!-- }}} -->
 
 ```js
 // {{{1 LEAFLET MAP
@@ -379,4 +406,41 @@ function typeChart(data, {width}) { // {{{1
     .nuclear-tooltip::before {
         border-top-color: rgba(0,0,0,0.8) !important;
     }
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #333333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #555555;
+    }
 </style>
+<!-- PROMPTS: 
+1.
+Provide code so the layer.on method issues a new event which the chart variable will detect and reload the chart.
+```js
+    layer.on('click',  (e) => {
+        const country = feature.properties['origin country'];
+        views.country = country;
+    });
+```
+The chart variable is declared in the html portion of this code:
+{
+...
+<div class="grid grid-cols-1">
+    <div class="card">
+        ${resize((width) => { const chart = bombsTimeline(views.country, {width}); chart.addEventListener("click", clicked); return chart; })}
+    </div>
+</div>
+}
+
+2.
+Provide css to make a button look nice.
+
+-->
