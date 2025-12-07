@@ -64,7 +64,6 @@ function analyzeBombsByYearAndCountry(bombs) { // {{{1
 const aggregated = analyzeBombsByYearAndCountry(bombs);
 // }}}
 
-let barChart;
 function bombsTimeline(country, {width} = {}) { // {{{1
     let data;
     let fill;
@@ -85,9 +84,9 @@ function bombsTimeline(country, {width} = {}) { // {{{1
 
     const yearData = aggregated.map(entry => ({ year: entry.year }));
 
-    barChart = Plot.plot({
+    return Plot.plot({
         title,
-        width: 1200,
+        width: width,
         height: 300,
         x: { type: "band", tickFormat: "", tickRotate: -30, label: "" },
         y: { grid: true, label: "bombs" },
@@ -111,18 +110,21 @@ function bombsTimeline(country, {width} = {}) { // {{{1
 bombsTimeline(views.country);
 let barYear;
 const clicked = (event) => {
-    barYear = barChart.value ? barChart.value.year : undefined;
-    views.year = barYear;
-    barYear ? updateMap(views.purpose, barYear) : updateMap(views.purpose, null);
+    if (event) {
+        const chart = event.currentTarget;
+        barYear = chart.value ? chart.value.year : undefined;
+        views.year = barYear;
+        barYear ? updateMap(views.purpose, barYear) : updateMap(views.purpose, null);
+    }
 };
-barChart.addEventListener("click", clicked);
 clicked(undefined);
+let thingy;
 // }}}
 ```
 
 <div class="grid grid-cols-1">
     <div class="card">
-        ${resize((width) => barChart)}
+        ${resize((width) => { const createChart = () => { const c = bombsTimeline(views.country, {width}); c.addEventListener("click", clicked); return c; }; let currentChart = createChart(); const reload = () => { const newChart = createChart(); currentChart.replaceWith(newChart); currentChart = newChart; }; window.addEventListener("update-chart", reload); return currentChart; })}
     </div>
 </div>
 
@@ -320,6 +322,7 @@ function onEachFeature(feature, layer) {
         layer.on('click',  (e) => {
             const country = feature.properties['origin country'];
             views.country = country;
+            window.dispatchEvent(new CustomEvent("update-chart"));
         });
     }
 }
