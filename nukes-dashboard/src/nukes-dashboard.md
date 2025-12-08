@@ -371,9 +371,6 @@ updateMap('All', null);
 //}}}
 ```
 
-<div class="grid grid-cols-1">
-</div>
-
 ```js
 function typeChart(data, {width}) { // {{{1
     return Plot.plot({
