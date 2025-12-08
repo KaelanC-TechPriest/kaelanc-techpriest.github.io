@@ -115,15 +115,21 @@ const clicked = (event) => {
 };
 clicked(undefined);
 // }}}
-
-function resetBarChart() {
-    views.country = null;
-    window.dispatchEvent(new CustomEvent('update-chart'));
-};
 ```
+
 <!-- {{{1 BAR CHART HTML -->
 <div class="grid grid-cols-1">
     <div class="card">
+        ${(() => {
+            const resetButton = html`<button>Reset Charts</button>`;
+            resetButton.onclick = () => {
+                views.year = null;
+                views.country = null;
+                window.dispatchEvent(new CustomEvent('update-chart'));
+                updateMap();
+            };
+            return resetButton;
+        })()}
         ${resize((width) => { 
             const createChart = () => { 
                 const c = bombsTimeline(views.country, {width}); 
@@ -138,14 +144,7 @@ function resetBarChart() {
             window.addEventListener("update-chart", reload); 
             return currentChart; 
         })}
-        ${(() => {
-            const resetButton = html`<button>View All Countries</button>`;
-            resetButton.onclick = () => {
-                views.country = null;
-                window.dispatchEvent(new CustomEvent('update-chart'));
-            };
-            return resetButton;
-        })()}
+    ${resize((width) => map())}
     </div>
 </div>
 <!-- }}} -->
@@ -205,9 +204,15 @@ function updateMap(selectedType = 'All', selectedYear) {
             parseFloat(bomb['longitude']) === 0) return false;
 
         if (selectedYear) {
-            return (selectedType === 'All' || bomb['purpose'] === selectedType) && (parseInt(bomb['date']) === parseInt(selectedYear));
+            return (selectedType === 'All' || bomb['purpose'] === selectedType) &&
+                (parseInt(bomb['date']) === parseInt(selectedYear) &&
+                (!views.country || bomb['origin country'] === views.country)
+            );
         } else {
-            return (selectedType === 'All' || bomb['purpose'] === selectedType);
+            return (
+                (selectedType === 'All' || bomb['purpose'] === selectedType) &&
+                (!views.country || bomb['origin country'] === views.country)
+            );
         }
     });
 
@@ -367,7 +372,6 @@ updateMap('All', null);
 ```
 
 <div class="grid grid-cols-1">
-    ${resize((width) => map())}
 </div>
 
 ```js
