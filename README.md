@@ -26,7 +26,7 @@ country.
 
 This is the colorblind view.
 
-!(Dashboard in colorblind view)[src/data/Screenshot 2025-12-09 at 07-59-03 Dashboard Nukes Dashboard.png]
+![Dashboard in colorblind view](src/data/Screenshot 2025-12-09 at 07-59-03 Dashboard Nukes Dashboard.png)
 
 ### Prompts (using xAI Grok 4.0)
 
